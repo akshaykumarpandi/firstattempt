@@ -3,52 +3,132 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Tomato Food Menu</title>
-  <link rel="stylesheet" href="styles.css" />
+  <title>Tomato Food App</title>
+  <style>
+    :root { --bg: #fff6f0; --surface: #ffffff; --text: #2b1d16; --muted: #6b5346; --accent: #d93f2d; --border: rgba(0,0,0,.08); }
+    * { box-sizing: border-box; }
+    body { margin:0; font-family: Inter, system-ui, sans-serif; background: var(--bg); color: var(--text); }
+    .container { width: min(1040px, calc(100% - 2rem)); margin: 0 auto; padding: 1.5rem 0; }
+    .site-header { text-align:center; padding: 2rem 0 1rem; }
+    .site-header h1 { margin:0; font-size: clamp(2rem, 4vw, 3rem); }
+    .site-header p { margin: 0.75rem auto 0; color: var(--muted); max-width: 680px; }
+    .cart-summary { margin-top:1rem; font-weight:700; color: var(--accent); }
+    .menu-grid { display:grid; gap:1.5rem; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); margin-top:2rem; }
+    .card { background: var(--surface); border:1px solid var(--border); border-radius:24px; overflow:hidden; box-shadow:0 18px 35px rgba(0,0,0,.08); }
+    .card img { width:100%; height:220px; object-fit:cover; }
+    .card-body { padding:1.4rem; display:grid; gap:1rem; }
+    .card-body h2 { margin:0; font-size:1.4rem; }
+    .card-body p { margin:0; color: var(--muted); }
+    .price { font-size:1.35rem; font-weight:700; color: var(--accent); }
+    .button { padding:0.95rem 1.3rem; border-radius:999px; border:none; background: var(--accent); color:#fff; font-weight:700; cursor:pointer; transition: filter .16s ease; }
+    .button:hover { filter: brightness(1.05); }
+    .address-input { width:100%; padding:0.95rem 1rem; border-radius:16px; border:1px solid var(--border); font:inherit; }
+    .message { padding:1rem 1.1rem; border-radius:16px; margin-top:1rem; display:none; }
+    .message.success { background: rgba(217,63,45,0.13); color:#7a1b10; display:block; }
+    .message.error { background: rgba(0,0,0,0.05); color:#7a1b10; display:block; }
+    @media (max-width: 720px) { .card img { height:200px; } }
+  </style>
 </head>
 <body>
-  <header class="site-header">
-    <div class="container">
+  <div class="container">
+    <header class="site-header">
       <h1>Tomato Food App</h1>
-      <p>Simple tomato menu with two dishes and their prices.</p>
-    </div>
-  </header>
+      <p>Choose your tomato dish, save a delivery address, and place your order.</p>
+      <div class="cart-summary">Cart: <span id="cartCount">0</span> items</div>
+    </header>
 
-  <main class="container">
-    <section class="menu-section">
-      <div class="menu-card">
+    <section class="menu-grid">
+      <article class="card">
         <img src="https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=800&q=80" alt="Tomato Dosa" />
-        <div class="menu-card-body">
-          <h2>Tomato Dosa</h2>
-          <p>Flavorful dosa topped with tomato chutney and spices.</p>
+        <div class="card-body">
+          <div>
+            <h2>Tomato Dosa</h2>
+            <p>Delicious tomato dosa with spicy chutney.</p>
+          </div>
           <div class="price">₹50</div>
+          <button class="button" data-name="Tomato Dosa" data-price="50">Add to cart</button>
         </div>
-      </div>
+      </article>
 
-      <div class="menu-card">
+      <article class="card">
         <img src="https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=800&q=80" alt="Tomato Roti" />
-        <div class="menu-card-body">
-          <h2>Tomato Roti</h2>
-          <p>Fresh roti with tomato masala and herbs.</p>
+        <div class="card-body">
+          <div>
+            <h2>Tomato Roti</h2>
+            <p>Soft roti filled with tomato masala and herbs.</p>
+          </div>
           <div class="price">₹80</div>
+          <button class="button" data-name="Tomato Roti" data-price="80">Add to cart</button>
         </div>
-      </div>
+      </article>
 
-      <div class="menu-card add-card">
-        <div class="menu-card-body">
-          <h2>Add Delivery Address</h2>
-          <p>Enter the address where you want your tomato meal delivered.</p>
-          <input class="address-input" type="text" placeholder="Enter delivery address" />
-          <button class="add-button">Save Address</button>
+      <article class="card">
+        <div class="card-body">
+          <h2>Delivery Address</h2>
+          <p>Enter the address where you want the order delivered.</p>
+          <input id="addressInput" class="address-input" type="text" placeholder="Enter delivery address" />
+          <button id="saveAddressBtn" class="button">Save Address</button>
+          <button id="placeOrderBtn" class="button">Place Order</button>
+          <div id="statusMessage" class="message"></div>
         </div>
-      </div>
+      </article>
     </section>
-  </main>
+  </div>
 
-  <footer>
-    <div class="container footer-text">
-      <p>Tomato Food App — easy menu, clear prices.</p>
-    </div>
-  </footer>
+  <script>
+    const cartCountEl = document.getElementById('cartCount');
+    const addressInput = document.getElementById('addressInput');
+    const saveAddressBtn = document.getElementById('saveAddressBtn');
+    const placeOrderBtn = document.getElementById('placeOrderBtn');
+    const statusMessage = document.getElementById('statusMessage');
+    const buttons = document.querySelectorAll('.button[data-name]');
+
+    let cartCount = 0;
+    let savedAddress = '';
+
+    function updateCart() {
+      cartCountEl.textContent = cartCount;
+    }
+
+    function showMessage(text, type) {
+      statusMessage.textContent = text;
+      statusMessage.className = 'message ' + type;
+    }
+
+    buttons.forEach(button => {
+      button.addEventListener('click', () => {
+        cartCount += 1;
+        updateCart();
+        const name = button.dataset.name;
+        showMessage(`${name} added to cart. Total items: ${cartCount}.`, 'success');
+      });
+    });
+
+    saveAddressBtn.addEventListener('click', () => {
+      const address = addressInput.value.trim();
+      if (!address) {
+        showMessage('Enter a delivery address first.', 'error');
+        return;
+      }
+      savedAddress = address;
+      showMessage('Delivery address saved successfully.', 'success');
+    });
+
+    placeOrderBtn.addEventListener('click', () => {
+      if (cartCount === 0) {
+        showMessage('Add at least one item to cart before placing an order.', 'error');
+        return;
+      }
+      if (!savedAddress) {
+        showMessage('Save a delivery address before placing the order.', 'error');
+        return;
+      }
+      showMessage(`Order successful! ${cartCount} item(s) will be delivered to: ${savedAddress}`, 'success');
+      cartCount = 0;
+      updateCart();
+      addressInput.value = '';
+      savedAddress = '';
+    });
+  </script>
 </body>
 </html>
