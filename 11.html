@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tomato Food Menu</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="container">
+      <h1>Tomato Food App</h1>
+      <p>Simple tomato menu with two dishes and their prices.</p>
+      <div class="cart-summary">
+        Cart: <span id="cartCount">0</span> items
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="menu-section">
+      <div class="menu-card">
+        <img src="https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=800&q=80" alt="Tomato Dosa" />
+        <div class="menu-card-body">
+          <h2>Tomato Dosa</h2>
+          <p>Flavorful dosa topped with tomato chutney and spices.</p>
+          <div class="price">₹50</div>
+          <button class="cart-button" data-name="Tomato Dosa" data-price="50">Add to cart</button>
+        </div>
+      </div>
+
+      <div class="menu-card">
+        <img src="https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=800&q=80" alt="Tomato Roti" />
+        <div class="menu-card-body">
+          <h2>Tomato Roti</h2>
+          <p>Fresh roti with tomato masala and herbs.</p>
+          <div class="price">₹80</div>
+          <button class="cart-button" data-name="Tomato Roti" data-price="80">Add to cart</button>
+        </div>
+      </div>
+
+      <div class="menu-card add-card">
+        <div class="menu-card-body">
+          <h2>Delivery Address</h2>
+          <p>Enter the address where you want your tomato meal delivered.</p>
+          <input id="addressInput" class="address-input" type="text" placeholder="Enter delivery address" />
+          <button id="saveAddressButton" class="add-button">Save Address</button>
+          <button id="placeOrderButton" class="order-button">Place Order</button>
+          <div id="statusMessage" class="status-message hidden"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+  <script>
+    const cartCountEl = document.getElementById('cartCount');
+    const cartButtons = document.querySelectorAll('.cart-button');
+    const addressInput = document.getElementById('addressInput');
+    const saveAddressButton = document.getElementById('saveAddressButton');
+    const placeOrderButton = document.getElementById('placeOrderButton');
+    const statusMessage = document.getElementById('statusMessage');
+
+    let cartCount = 0;
+    let savedAddress = '';
+
+    function updateCart() {
+      cartCountEl.textContent = cartCount;
+    }
+
+    function showMessage(text, type = 'success') {
+      statusMessage.textContent = text;
+      statusMessage.className = `status-message ${type}`;
+      statusMessage.classList.remove('hidden');
+    }
+
+    cartButtons.forEach(button => {
+      button.addEventListener('click', () => {
+        const itemName = button.dataset.name;
+        cartCount += 1;
+        updateCart();
+        showMessage(`${itemName} added to cart. Total items: ${cartCount}.`, 'success');
+      });
+    });
+
+    saveAddressButton.addEventListener('click', () => {
+      const address = addressInput.value.trim();
+      if (!address) {
+        showMessage('Please enter a delivery address first.', 'error');
+        return;
+      }
+      savedAddress = address;
+      showMessage('Delivery address saved successfully.', 'success');
+    });
+
+    placeOrderButton.addEventListener('click', () => {
+      if (cartCount === 0) {
+        showMessage('Add at least one item to the cart before placing an order.', 'error');
+        return;
+      }
+      if (!savedAddress) {
+        showMessage('Please save a delivery address before placing an order.', 'error');
+        return;
+      }
+      showMessage(`Order successful! ${cartCount} item(s) will be delivered to: ${savedAddress}`, 'success');
+      cartCount = 0;
+      updateCart();
+      addressInput.value = '';
+      savedAddress = '';
+    });
+  </script>
+
+  <footer>
+    <div class="container footer-text">
+      <p>Tomato Food App — easy menu, clear prices.</p>
+    </div>
+  </footer>
+</body>
+</html>
